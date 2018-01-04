@@ -84,33 +84,51 @@ public class QuesAnsDAO {
 		}
 	}
 	
-	public void findAnswerDetails(int questionID) throws ClassNotFoundException, SQLException{
+	public ArrayList<QuesAnsDTO> findAnswerDetails(int questionID) throws ClassNotFoundException, SQLException {
 		
 		ArrayList<Integer> answerIDArrayList = new ArrayList<Integer>();
 		answerIDArrayList = findAnswerIDs(questionID);
-		
-		connection = CommonDAO.getConnection();
-		preparedStatement = connection.prepareStatement(QuesAnsSQL.FIND_ANSWER_DETAILS);
 		ArrayList<QuesAnsDTO> ansDTOs = new ArrayList<QuesAnsDTO>();
-		for(Integer i: answerIDArrayList) {
-			preparedStatement.setInt(1, i);
-			resultSet = preparedStatement.executeQuery();
+		
+		try { 
+			connection = CommonDAO.getConnection();
+			preparedStatement = connection.prepareStatement(QuesAnsSQL.FIND_ANSWER_DETAILS);
 			
-			while(resultSet.next()) {
+			for(Integer i: answerIDArrayList) {
+				preparedStatement.setInt(1, i);
+				resultSet = preparedStatement.executeQuery();
+			
+				while(resultSet.next()) {
 				QuesAnsDTO quesAnsDTO = new QuesAnsDTO(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4));
 				ansDTOs.add(quesAnsDTO);
-			}	
+				}	
+			}
+		}finally {
+			if(resultSet!=null) {
+				resultSet.close();
+			}
+			if(preparedStatement!=null) {
+				preparedStatement.close();
+			}
+			if(connection!=null) {
+				connection.close();
+			}
 		}
+		return ansDTOs;
 	}
+	
+	
 	public ArrayList<String> findRelatedQuestions(int questionID) throws ClassNotFoundException, SQLException{
 		
-		ArrayList<Integer> relatedQArrayList = new ArrayList<Integer>();
-		relatedQArrayList = findRelatedQuestionIDs(questionID);
+		ArrayList<Integer> relatedQIDArrayList = new ArrayList<Integer>();
+		relatedQIDArrayList = findRelatedQuestionIDs(questionID);
 		ArrayList<String> relatedQDetails = new ArrayList<String>();
+		
+		connection = CommonDAO.getConnection();
+		preparedStatement = connection.prepareStatement(QuesAnsSQL.FIND_RELATED_QUESTION_DETAILS);
+		
 		try {
-			connection = CommonDAO.getConnection();
-			preparedStatement = connection.prepareStatement(QuesAnsSQL.FIND_RELATED_QUESTION_DETAILS);
-			for(Integer i: relatedQArrayList) {
+			for(Integer i: relatedQIDArrayList) {
 				
 				preparedStatement.setInt(1, i);
 				resultSet = preparedStatement.executeQuery();
@@ -122,7 +140,7 @@ public class QuesAnsDAO {
 				while(resultSet.next()) {
 					relatedQDetails.add(resultSet.getString(1));
 				}
-				return relatedQDetails;
+				//return relatedQDetails;
 			}
 		}
 		finally {
